@@ -1,0 +1,17 @@
+module.exports = {
+  'Identifier'
+  'FunctionDeclaration'
+  'NewExpression'
+  'FunctionExpression'
+  'CallExpression'
+  'MemberExpression'
+  'AssignmentExpression'
+  'VariableDeclarator'
+  'Property'
+  'ConditionalExpression'
+  'IfStatement'
+  'UnaryExpression'
+  'LogicalExpression'
+  'BinaryExpression'
+  'ReturnStatement'
+}
