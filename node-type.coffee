@@ -14,4 +14,5 @@ module.exports = {
   'LogicalExpression'
   'BinaryExpression'
   'ReturnStatement'
+  'Literal'
 }
