@@ -23,7 +23,7 @@ traverse = (node, func) ->
       if typeof child is 'object' and child isnt null
         if Array.isArray child
           child.forEach (node) ->
-              traverse node, func
+            traverse node, func
         else
           traverse child, func
 
