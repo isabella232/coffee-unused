@@ -1,17 +1,18 @@
-esprima  = require 'esprima'
-nodeType = require './node-type'
+esprima    = require 'esprima'
+nodeType   = require './node-type'
+parseRegex = require './parse-regex'
 
 
-processResults = (results) ->
+processResults = (results, path) ->
   for name of results
     if results.hasOwnProperty name
       stats = results[name]
       if stats.declarations is 0 and stats.calls is 0
-        console.log 'Variable', name, 'undeclared'
+        console.log 'Variable', name, 'undeclared', ' in ', path
       else if stats.declarations > 1 and stats.calls is 0
-        console.log 'Variable', name, 'declared multiple times'
+        console.log 'Variable', name, 'declared multiple times', ' in ', path
       else if stats.calls is 0
-        console.log 'Variable', name, 'declared but not called'
+        console.log 'Variable', name, 'declared but not called', ' in ', path
 
 
 traverse = (node, func) ->
@@ -30,8 +31,10 @@ traverse = (node, func) ->
 checkIdentifier = (node) -> node.type is nodeType.Identifier
 
 
-analyzeCode = (code) ->
-  ast = esprima.parse code
+analyzeCode = (code, path) ->
+  options =
+    loc : no
+  ast = esprima.parse code, options
   variablesStats = {}
 
   addStatsEntry = (funcName) ->
@@ -42,6 +45,7 @@ analyzeCode = (code) ->
 
 
   traverse ast, (node) ->
+
     # variable = new Variable
     if node.type is nodeType.NewExpression
       if checkIdentifier node.callee
@@ -157,7 +161,19 @@ analyzeCode = (code) ->
         addStatsEntry node.argument.name
         variablesStats[node.argument.name].calls += 1
 
-  processResults variablesStats
+    # for pistachio variables {{#(variable)}}
+    else if node.type is nodeType.Literal
+      if typeof node.value is 'string'
+        if node.value.match(parseRegex.pistachios)?
+          for val in node.value.match(parseRegex.pistachios)
+            reg = val.match parseRegex.DATA_REGEX
+            if reg?
+              data = parseRegex.getData reg[0]
+              addStatsEntry data
+              variablesStats[data].calls += 1
+
+
+  processResults variablesStats, path
 
 
 module.exports = analyzeCode
