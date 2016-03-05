@@ -18,6 +18,7 @@
   "homepage": "https://github.com/koding/coffee-unused#readme",
   "dependencies": {
     "coffee-script": "1.10.0",
-    "esprima": "2.7.2"
+    "esprima": "2.7.2",
+    "walk": "^2.3.9"
   }
 }
