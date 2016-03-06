@@ -1,7 +1,8 @@
-fs          = require 'fs'
-walk        = require 'walk'
-coffee      = require 'coffee-script'
-analyzeCode = require './find-unused-vars'
+fs            = require 'fs'
+walk          = require 'walk'
+coffee        = require 'coffee-script'
+analyzeCode   = require './find-unused-vars'
+processResult = require './process-result'
 
 module.exports = (folder) ->
 
@@ -28,6 +29,6 @@ module.exports = (folder) ->
       code = try coffee.compile(code)
       catch e then console.error e; code
 
-      analyzeCode code, path
-
+      varsAndPath = analyzeCode code, path
+      processResult varsAndPath.stats, varsAndPath.path
 
