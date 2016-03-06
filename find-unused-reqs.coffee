@@ -55,6 +55,4 @@ module.exports = (folder) ->
           console.log "There are unused dependency in #{path}:#{linenumber}", k
 
 
-  String::removeCurly = (s) -> @[1...s.length-1]
-  String::startsWith ?= (s) -> @[...s.length] is s
-  String::endsWith   ?= (s) -> s is '' or @[-s.length..] is s
+  String::removeCurly = (s) -> this[1...s.length-1]
