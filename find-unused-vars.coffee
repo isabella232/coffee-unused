@@ -136,7 +136,7 @@ analyzeCode = (code, path) ->
       # var1 or var2
       # if variable1 isnt variable2
       # if var1 and var2
-      when NodeType.LogicalOrOp, NodeType.ExistsOp, NodeType.NEQOp, NodeType.LogicalAndOp, NodeType.EQOp, NodeType.InstanceofOp
+      when NodeType.LogicalOrOp, NodeType.ExistsOp, NodeType.NEQOp, NodeType.LogicalAndOp, NodeType.EQOp, NodeType.InstanceofOp, NodeType.LTOp, NodeType.DivideOp
         if node.left?
           assignCall node.left
         if node.right?
@@ -146,6 +146,27 @@ analyzeCode = (code, path) ->
       # not variable
       # variable[something] then .map
       when NodeType.UnaryExistsOp, NodeType.LogicalNotOp, NodeType.DynamicMemberAccessOp
+        if node.expression?
+          assignCall node.expression
+        if node.indexingExpr?
+          assignCall node.indexingExpr
+
+      when NodeType.Block
+        if node.statements?
+          for statement in node.statements
+            if statement?
+              assignCall statement
+
+      when NodeType.PostIncrementOp
+        if node.expression?
+          assignCall node.expression
+
+      when NodeType.ArrayInitialiser
+        if node.members?
+          for member in node.members
+            assignCall member
+
+      when NodeType.ProtoMemberAccessOp
         if node.expression?
           assignCall node.expression
 

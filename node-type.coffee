@@ -22,4 +22,10 @@ module.exports = {
   'InstanceofOp'
   'ExistsOp'
   'Function'
+  'LTOp'
+  'Block'
+  'PostIncrementOp'
+  'ArrayInitialiser'
+  'ProtoMemberAccessOp'
+  'DivideOp'
 }
