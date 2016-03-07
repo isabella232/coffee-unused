@@ -22,7 +22,8 @@ checkIdentifier = (node) -> node.type is NodeType.Identifier
 
 analyzeCode = (code, path) ->
 
-  ast = parse code
+  ast = try parse code
+  catch e then console.log "Error occured parsing the file #{path}"
   variablesStats = {}
 
   assignDeclaration = (node) ->
@@ -54,7 +55,7 @@ analyzeCode = (code, path) ->
 
   traverse ast, (node) ->
 
-    switch node.type
+    switch node?.type
 
       # variable = something
       when NodeType.AssignOp
