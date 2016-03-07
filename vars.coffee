@@ -26,9 +26,6 @@ module.exports = (folder) ->
     for path, value of lookForFile
 
       code = fs.readFileSync path, 'utf8'
-      code = try coffee.compile(code)
-      catch e then console.error e; code
-
       varsAndPath = analyzeCode code, path
       processResult varsAndPath.stats, varsAndPath.path
 

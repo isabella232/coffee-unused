@@ -1,6 +1,7 @@
 esprima    = require 'esprima'
 NodeType   = require './node-type'
 parseRegex = require './parse-regex'
+parse      = require('decaffeinate-parser').parse
 
 
 traverse = (node, func) ->
@@ -20,10 +21,25 @@ checkIdentifier = (node) -> node.type is NodeType.Identifier
 
 
 analyzeCode = (code, path) ->
-  options =
-    loc : no
-  ast = esprima.parse code, options
+
+  ast = parse code
   variablesStats = {}
+
+  assignDeclaration = (node) ->
+
+    if node.type is NodeType.Identifier
+      addStatsEntry node.data
+      variablesStats[node.data].declaredLine = node.line
+      variablesStats[node.data].declarations += 1
+
+
+  assignCall = (node) ->
+
+    if node.type is NodeType.Identifier
+      addStatsEntry node.data
+      variablesStats[node.data].calledLine = node.line
+      variablesStats[node.data].calls += 1
+
 
   addStatsEntry = (funcName) ->
 
@@ -31,146 +47,106 @@ analyzeCode = (code, path) ->
 
     variablesStats[funcName] =
       calls: 0
-      declarations:0
+      calledLine: 0
+      declarations: 0
+      declaredLine: 0
 
 
   traverse ast, (node) ->
 
     switch node.type
-      # variable = new Variable
-      when NodeType.NewExpression
-        if checkIdentifier node.callee
-          addStatsEntry node.callee.name
-          variablesStats[node.callee.name].calls += 1
 
-      # func (var1, var2, var3)
-      when NodeType.FunctionExpression
-        if node.params.length > 0
-          for param in node.params
-            if checkIdentifier param
-              addStatsEntry param.name
-              variablesStats[param.name].declarations += 1
+      # variable = something
+      when NodeType.AssignOp
+        if node.assignee? #and node.expresssion? and node.expression.type isnt NodeType.Identifier
+          if node.expression.type isnt 'Function'
+            assignDeclaration node.assignee
 
-      when NodeType.CallExpression
-        switch node.callee
+        if node.expression?
+          assignCall node.expression
 
-          # variable = variable2()
-          when NodeType.Identifier
-            if node.callee.name != 'require'
-              addStatsEntry node.callee.name
-              variablesStats[node.callee.name].calls += 1
+        # extends Variable
+        if node.expression?
+          if node.expression.type is NodeType.Class
+            if node.expression.parent?
+              assignCall node.expression.parent
 
-            if node.arguments.length > 0
-              for arg in node.arguments
-                if checkIdentifier arg
-                  addStatsEntry arg.name
-                  variablesStats[arg.name].calls += 1
+      # for k,v of variable
+      when NodeType.ForOf, NodeType.ForIn
+        if node.keyAssignee?
+          assignDeclaration node.keyAssignee
+        if node.valAssignee
+          assignDeclaration node.valAssignee
+        if node.target?
+          assignCall node.target
 
-          when NodeType.FunctionExpression
-            if node.arguments.length > 0
-              for arg in node.arguments
-                if checkIdentifier arg
-                  addStatsEntry arg.name
-                  variablesStats[arg.name].calls += 1
+      # variable.func()
+      when NodeType.MemberAccessOp
+        if node.expression?
+          assignCall node.expression
 
-          # variable.func()
-          when NodeType.MemberExpression
-            if checkIdentifier node.callee.object
-              addStatsEntry node.callee.object.name
-              variablesStats[node.callee.object.name].calls += 1
+      # func(var1, var2, ...)
+      when NodeType.FunctionApplication
+        if node.arguments?
+          for n in node.arguments
+            assignCall n
 
-            if node.arguments.length > 0
-              for arg in node.arguments
-                if checkIdentifier arg
-                  addStatsEntry arg.name
-                  variablesStats[arg.name].calls += 1
+        if node.function?
+          assignCall node.function
 
-      when NodeType.AssignmentExpression
-        switch node.right
+      # new Variable
+      when NodeType.NewOp
+        if node.ctor?
+          assignCall node.ctor
 
-          # variable = variable2 -- to find variable2 used
-          when NodeType.Identifier
-            addStatsEntry node.right.name
-            variablesStats[node.right.name].calls += 1
+      # if | unless Varibale
+      # return Variable
+      # variable ?= variable
+      when NodeType.Conditional, NodeType.Return, NodeType.CompoundAssignOp
+        if node.condition?
+          assignCall node.condition
 
-          # variable = this.variable2 -- to find variable2 used
-          when NodeType.MemberExpression
-            if node.right.object.type
-              addStatsEntry node.right.object.name
-              variablesStats[node.right.object.name].calls += 1
+        if node.expression?
+          assignCall node.expression
 
-      # variable
-      when NodeType.VariableDeclarator
-        addStatsEntry node.id.name
-        variablesStats[node.id.name].declarations += 1
+      # #{variable}
+      when NodeType.TemplateLiteral
+        if node.expressions?
+          for expression in node.expressions
+            assignCall expression
 
-      # 'test' : variable
-      when NodeType.Property
-        if checkIdentifier node.value
-          addStatsEntry node.value.name
-          variablesStats[node.value.name].calls += 1
+      # something = {variable, variable2}
+      when NodeType.ObjectInitialiser
+        if node.members?
+          for member in node.members
+            member.type = NodeType.Identifier
+            if member.raw.indexOf(':') is -1
+              member.data = member.raw
+            else
+              member.data = member.raw.split(':')[1]
+            assignCall member
 
-      #  variable1 <= variable2
-      when NodeType.ConditionalExpression
-        if checkIdentifier node.consequent
-          addStatsEntry node.consequent.name
-          variablesStats[node.consequent.name].calls += 1
+      # var : variable
+      when NodeType.Identifier
+        if node.expression?
+          assignCall node.expression
 
-      # variable2 = someVariable.variable1 - variable1 is used
-      when NodeType.MemberExpression
-        if node.property?
-          if checkIdentifier node.object
-            addStatsEntry node.object.name
-            variablesStats[node.object.name].calls += 1
 
-      # if (variable)
-      when NodeType.IfStatement
-        switch node.test
+      # var1 or var2
+      # if variable1 isnt variable2
+      # if var1 and var2
+      when NodeType.LogicalOrOp, NodeType.ExistsOp, NodeType.NEQOp, NodeType.LogicalAndOp, NodeType.EQOp, NodeType.InstanceofOp
+        if node.left?
+          assignCall node.left
+        if node.right?
+          assignCall node.right
 
-          when NodeType.Identifier
-            addStatsEntry node.test.name
-            variablesStats[node.test.name].calls += 1
-
-          when NodeType.UnaryExpression
-            addStatsEntry node.test.argument.name
-            variablesStats[node.test.argument.name].calls += 1
-
-      # variable1 || variable2 or variable1 && variable2
-      when NodeType.LogicalExpression
-        if checkIdentifier node.left
-          addStatsEntry node.left.name
-          variablesStats[node.left.name].calls += 1
-
-        if checkIdentifier node.right
-          addStatsEntry node.right.name
-          variablesStats[node.right.name].calls += 1
-
-      # comparision two variable variable1 != null or variable1 != variable2
-      when NodeType.BinaryExpression
-        if checkIdentifier node.left
-          addStatsEntry(node.left.name)
-          variablesStats[node.left.name].calls += 1
-
-        if checkIdentifier node.right
-          addStatsEntry node.right.name
-          variablesStats[node.right.name].calls += 1
-
-      # return variable
-      when NodeType.ReturnStatement
-        if node.argument? and checkIdentifier node.argument
-          addStatsEntry node.argument.name
-          variablesStats[node.argument.name].calls += 1
-
-      # for pistachio variables {{#(variable)}}
-      when NodeType.Literal
-        if typeof node.value is 'string'
-          if node.value.match(parseRegex.pistachios)?
-            for val in node.value.match(parseRegex.pistachios)
-              reg = val.match parseRegex.DATA_REGEX
-              if reg?
-                data = parseRegex.getData reg[0]
-                addStatsEntry data
-                variablesStats[data].calls += 1
+      # if variable?
+      # not variable
+      # variable[something] then .map
+      when NodeType.UnaryExistsOp, NodeType.LogicalNotOp, NodeType.DynamicMemberAccessOp
+        if node.expression?
+          assignCall node.expression
 
   variablesAndPath =
     stats : variablesStats
