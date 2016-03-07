@@ -22,7 +22,7 @@ checkIdentifier = (node) -> node.type is NodeType.Identifier
 
 
 analyzeCode = (code, path) ->
-
+  console.log 'path', path
   ast = try parse code
   catch e
     console.log "Error occured parsing the file #{path}"
@@ -110,6 +110,10 @@ analyzeCode = (code, path) ->
         if node.ctor?
           assignCall node.ctor
 
+        if node.arguments?
+          for argument in node.arguments
+            assignCall argument
+
       # if | unless Varibale
       # return Variable
       # variable ?= variable
@@ -146,7 +150,7 @@ analyzeCode = (code, path) ->
       # var1 or var2
       # if variable1 isnt variable2
       # if var1 and var2
-      when NodeType.LogicalOrOp, NodeType.ExistsOp, NodeType.NEQOp, NodeType.LogicalAndOp, NodeType.EQOp, NodeType.InstanceofOp, NodeType.LTOp, NodeType.DivideOp
+      when NodeType.LogicalOrOp, NodeType.ExistsOp, NodeType.NEQOp, NodeType.LogicalAndOp, NodeType.EQOp, NodeType.InstanceofOp, NodeType.LTOp, NodeType.DivideOp, NodeType.SubtractOp
         if node.left?
           assignCall node.left
         if node.right?
