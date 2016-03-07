@@ -22,7 +22,7 @@ checkIdentifier = (node) -> node.type is NodeType.Identifier
 
 
 analyzeCode = (code, path) ->
-  console.log 'path', path
+
   ast = try parse code
   catch e
     console.log "Error occured parsing the file #{path}"
