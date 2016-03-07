@@ -2,6 +2,7 @@ esprima    = require 'esprima'
 NodeType   = require './node-type'
 parseRegex = require './parse-regex'
 parse      = require('decaffeinate-parser').parse
+coffee     = require 'coffee-script'
 
 
 traverse = (node, func) ->
@@ -23,7 +24,16 @@ checkIdentifier = (node) -> node.type is NodeType.Identifier
 analyzeCode = (code, path) ->
 
   ast = try parse code
-  catch e then console.log "Error occured parsing the file #{path}"
+  catch e
+    console.log "Error occured parsing the file #{path}"
+    code = try coffee.compile code
+    catch e
+      console.log 'Error occured while compiling to js...'
+      console.log 'Please run the same command with -r to see unused requires'
+    options =
+      loc : yes
+    ast = esprima.parse code, options
+
   variablesStats = {}
 
   assignDeclaration = (node) ->
