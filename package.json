@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/koding/coffee-unused#readme",
   "dependencies": {
+    "coffee-react-transform": "^3.3.0",
     "coffee-script": "1.10.0",
     "command-line-args": "^2.1.6",
     "decaffeinate-parser": "^1.1.3",
