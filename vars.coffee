@@ -1,10 +1,9 @@
 fs            = require 'fs'
 walk          = require 'walk'
-coffee        = require 'coffee-script'
 analyzeCode   = require './find-unused-vars'
 processResult = require './process-result'
 
-module.exports = (folder) ->
+module.exports = (folder, skipParseError) ->
 
   lookForFile = {}
   pathToWalk  = folder
@@ -26,6 +25,6 @@ module.exports = (folder) ->
     for path, value of lookForFile
 
       code = fs.readFileSync path, 'utf8'
-      varsAndPath = analyzeCode code, path
+      varsAndPath = analyzeCode code, path, skipParseError
       processResult varsAndPath.stats, varsAndPath.path
 

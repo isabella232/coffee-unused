@@ -2,8 +2,7 @@ esprima    = require 'esprima'
 NodeType   = require './node-type'
 parseRegex = require './parse-regex'
 parse      = require('decaffeinate-parser').parse
-coffee     = require 'coffee-script'
-
+transform  = require 'coffee-react-transform'
 
 traverse = (node, func) ->
   func node
@@ -21,18 +20,19 @@ traverse = (node, func) ->
 checkIdentifier = (node) -> node.type is NodeType.Identifier
 
 
-analyzeCode = (code, path) ->
+analyzeCode = (code, path, skipParseError) ->
 
   ast = try parse code
   catch e
-    console.log "Error occured parsing the file #{path}"
-    code = try coffee.compile code
+    unless skipParseError
+      console.log "Error occured parsing the file #{path}"
+    code = try transform code
     catch e
-      console.log 'Error occured while compiling to js...'
-      console.log 'Please run the same command with -r to see unused requires'
-    options =
-      loc : yes
-    ast = esprima.parse code, options
+      unless skipParseError
+        console.log 'Error occured while compiling to js...'
+    ast = try parse code
+    catch e
+      console.log "Error occured parsing the file #{path}"
 
   variablesStats = {}
 
@@ -149,8 +149,8 @@ analyzeCode = (code, path) ->
 
       # var1 or var2
       # if variable1 isnt variable2
-      # if var1 and var2
-      when NodeType.LogicalOrOp, NodeType.ExistsOp, NodeType.NEQOp, NodeType.LogicalAndOp, NodeType.EQOp, NodeType.InstanceofOp, NodeType.LTOp, NodeType.DivideOp, NodeType.SubtractOp
+      # if var1 and var2, var1 + var2
+      when NodeType.LogicalOrOp, NodeType.InOp, NodeType.PlusOp, NodeType.ExistsOp, NodeType.NEQOp, NodeType.LogicalAndOp, NodeType.EQOp, NodeType.InstanceofOp, NodeType.LTOp, NodeType.DivideOp, NodeType.SubtractOp
         if node.left?
           assignCall node.left
         if node.right?
