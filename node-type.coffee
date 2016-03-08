@@ -29,4 +29,6 @@ module.exports = {
   'ProtoMemberAccessOp'
   'DivideOp'
   'SubtractOp'
+  'PlusOp'
+  'InOp'
 }
