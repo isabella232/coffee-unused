@@ -1,5 +1,5 @@
 require('coffee-script/register');
-var vars = require('./vars');
+var index = require('./index.coffee');
 var commandLineArgs = require('command-line-args');
 
 var cli = commandLineArgs([
@@ -18,7 +18,7 @@ if (!options.src)
 
 if (typeof options.src === 'string') {
   if (options['unused-vars']) {
-    vars(options.src, options['skip-parse-error']);
+    index(options.src, options['skip-parse-error']);
   }
 }
 
