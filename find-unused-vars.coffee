@@ -22,10 +22,13 @@ checkIdentifier = (node) -> node.type is NodeType.Identifier
 
 analyzeCode = (code, path, skipParseError) ->
 
+  # parse the coffee file decaffeinate-parser
   ast = try parse code
   catch e
     unless skipParseError
       console.log "Error occured parsing the file #{path}"
+    # when parsing error occured try to parse code with transform
+    # transform is for parsing jsx
     code = try transform code
     catch e
       unless skipParseError
