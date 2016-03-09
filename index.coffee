@@ -10,10 +10,17 @@ module.exports = (folder, skipParseError) ->
   pathToWalk  = folder
   walker      = walk.walk pathToWalk, {}
 
+
+  readfile = (path) ->
+    fs.readFile path, 'utf8', (err, code)->
+      unless err
+        varsAndPath = analyzeCode code, path, skipParseError
+        processResult varsAndPath.stats, varsAndPath.path
+
+
   work = (path) ->
-    code = fs.readFileSync path, 'utf8'
-    varsAndPath = analyzeCode code, path, skipParseError
-    processResult varsAndPath.stats, varsAndPath.path
+    code = readfile path
+
 
   q = async.queue(((path, work) ->
     work(path)
