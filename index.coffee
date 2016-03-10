@@ -4,36 +4,41 @@ analyzeCode   = require './find-unused-vars'
 processResult = require './process-result'
 async = require 'async'
 
-module.exports = (folder, skipParseError) ->
+module.exports = (folder, skipParseError, callback) ->
 
   lookForFile = {}
   pathToWalk  = folder
   walker      = walk.walk pathToWalk, {}
+  originalResult = []
 
 
-  readfile = (path) ->
+  readfile = (path, callback) ->
     fs.readFile path, 'utf8', (err, code)->
-      unless err
-        varsAndPath = analyzeCode code, path, skipParseError
-        processResult varsAndPath.stats, varsAndPath.path
+      return callback err if err and not skipParseError
+
+      varsAndPath = analyzeCode code, path, skipParseError
+      result = processResult varsAndPath.stats, varsAndPath.path
+      originalResult.push result  if result.length > 0
+      callback null
 
 
-  work = (path) ->
-    code = readfile path
-
-
-  q = async.queue(((path, work) ->
-    work(path)
-  ), 5)
-
+  q = async.queue(readfile, 5)
 
   walker.on "file", (root, fileStats, next) ->
-    if root.indexOf('node_modules') is -1
-      checkUsedFiles = {}
-      if fileStats.name.endsWith '.coffee'
-        openFile = "#{root}/#{fileStats.name}"
-        q.push(openFile, work)
+    return next() if root.indexOf('node_modules') > -1
+
+    if fileStats.name.endsWith '.coffee'
+      fileName = "#{root}/#{fileStats.name}"
+      q.push fileName
 
     next()
 
+  walker.on "end", () ->
+
+    q.drain = () ->
+      console.log 'I am done!'
+      q.kill()
+      callback originalResult
+
+    console.log 'End of walker'
 

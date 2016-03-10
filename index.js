@@ -18,7 +18,13 @@ if (!options.src)
 
 if (typeof options.src === 'string') {
   if (options['unused-vars']) {
-    index(options.src, options['skip-parse-error']);
+    index(options.src, options['skip-parse-error'], function(result){
+      result.forEach(function(res){
+        res.forEach(function(r){
+          console.log(r.name + " is not in use " + r.path);
+        })
+      })
+    });
   }
 }
 

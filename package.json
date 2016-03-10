@@ -4,7 +4,7 @@
   "description": "Find unused variables and imports in CoffeeScript files",
   "main": "index.js",
   "scripts": {
-    "test": "node index.js --src test -v -s"
+    "test": "jasmine-node --matchall --coffee test/test.spec.coffee"
   },
   "repository": {
     "type": "git",
@@ -23,6 +23,7 @@
     "command-line-args": "^2.1.6",
     "decaffeinate-parser": "^1.1.3",
     "esprima": "2.7.2",
+    "jasmine-node": "^1.14.5",
     "walk": "^2.3.9"
   }
 }
