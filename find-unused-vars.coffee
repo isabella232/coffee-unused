@@ -35,7 +35,8 @@ analyzeCode = (code, path, skipParseError) ->
         console.log 'Error occured while compiling to js...'
     ast = try parse code
     catch e
-      console.log "Error occured parsing the file #{path}"
+      unless skipParseError
+        console.log "Error occured parsing the file #{path}"
 
   variablesStats = {}
 
