@@ -36,9 +36,7 @@ module.exports = (folder, skipParseError, callback) ->
   walker.on "end", () ->
 
     q.drain = () ->
-      console.log 'I am done!'
       q.kill()
       callback originalResult
 
-    console.log 'End of walker'
 
