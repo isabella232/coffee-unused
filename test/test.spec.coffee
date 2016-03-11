@@ -1,6 +1,6 @@
 index = require '../index.coffee'
-path = require 'path'
-fs = require 'fs'
+path  = require 'path'
+fs    = require 'fs'
 path  = path.dirname(fs.realpathSync(__filename))
 
 describe "Test", ->
