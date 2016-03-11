@@ -1,21 +1,23 @@
 index = require '../index.coffee'
-
+path = require 'path'
+fs = require 'fs'
+path  = path.dirname(fs.realpathSync(__filename))
 
 describe "Test", ->
   describe "Unused variables for vars", ->
 
     it 'vars', (done) ->
 
-      index "/Users/hakankaradis/coffee-unused/test/vars", yes, (expected) ->
+      index "#{path}/vars", yes, (expected) ->
         actual = [[
           {
             name: 'fs'
-            path: '/Users/hakankaradis/coffee-unused/test/vars/var1.coffee:1'
+            path: "#{path}/vars/var1.coffee:1"
             lineNumber: 1
           }
           {
             name: 'options'
-            path: '/Users/hakankaradis/coffee-unused/test/vars/var1.coffee:3'
+            path: "#{path}/vars/var1.coffee:3"
             lineNumber: 3
           }
         ]]
@@ -27,18 +29,17 @@ describe "Test", ->
 
     it 'options', (done) ->
 
-      index "/Users/hakankaradis/coffee-unused/test/options", yes, (expected) ->
-        console.log expected
-        console.log actual
+      index "#{path}/options", yes, (expected) ->
+
         actual = [ [
           {
             name: 'globals'
-            path: '/Users/hakankaradis/coffee-unused/test/options/option.coffee:1'
+            path: "#{path}/options/option.coffee:1"
             lineNumber: 1
           }
         ] ]
 
-        expect(yes).toEqual yes
+        expect(expected).toEqual actual
         done()
 
 
