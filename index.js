@@ -19,10 +19,8 @@ if (typeof options.src === 'string') {
   index(options.src, options['skip-parse-error'], function(result){
     result.forEach(function(res){
       res.forEach(function(r){
-        for (ignoredVariable in ignoredVariables) {
-          if (r.name !== ignoredVariable) {
-            console.log(r.name + " is not in use " + r.path);
-          }
+        if (ignoredVariables.indexOf(r.name) < 0) {
+          console.log(r.name + " is not in use " + r.path);
         }
       })
     })
