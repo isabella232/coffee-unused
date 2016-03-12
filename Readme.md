@@ -28,6 +28,6 @@ npm install coffee-unused
 ## Usage
 
 ```
-node ./node_modules/index.js --src <path to walk>  [-s|--skip-parse-error]
+node ./node_modules/coffee-unused/index.js --src <path to walk>  [-s|--skip-parse-error]
 ```
 
