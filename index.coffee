@@ -6,6 +6,8 @@ async = require 'async'
 
 module.exports = (folder, skipParseError, callback) ->
 
+  ignoredDirectories = ['node_modules']
+
   lookForFile = {}
   pathToWalk  = folder
   walker      = walk.walk pathToWalk, {}
@@ -25,7 +27,7 @@ module.exports = (folder, skipParseError, callback) ->
   q = async.queue(readfile, 5)
 
   walker.on "file", (root, fileStats, next) ->
-    return next() if root.indexOf('node_modules') > -1
+    return next() if root in ignoredDirectories
 
     if fileStats.name.endsWith '.coffee'
       fileName = "#{root}/#{fileStats.name}"

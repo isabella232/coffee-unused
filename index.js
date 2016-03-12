@@ -9,6 +9,8 @@ var cli = commandLineArgs([
 
 var options = cli.parse()
 
+ignoredVariables = ["__"]
+
 if (!options.src)
   usage();
 
@@ -17,7 +19,9 @@ if (typeof options.src === 'string') {
   index(options.src, options['skip-parse-error'], function(result){
     result.forEach(function(res){
       res.forEach(function(r){
-        console.log(r.name + " is not in use " + r.path);
+        if (ignoredVariables.indexOf(r.name) < 0) {
+          console.log(r.name + " is not in use " + r.path);
+        }
       })
     })
   });

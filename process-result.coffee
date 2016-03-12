@@ -10,11 +10,5 @@ module.exports = processResults = (results, path) ->
           path       : "#{path}:#{stats.declaredLine}"
           lineNumber : stats.declaredLine
         originalResult.push result
-      else if stats.calls is 0
-        result =
-          name       : name
-          path       : "#{path}:#{stats.declaredLine}"
-          lineNumber : stats.declaredLine
-        originalResult.push result
 
   return originalResult

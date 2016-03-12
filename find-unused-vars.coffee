@@ -100,6 +100,10 @@ analyzeCode = (code, path, skipParseError) ->
         if node.expression?
           assignCall node.expression
 
+        if node.memberName?
+          addStatsEntry node.memberName
+          variablesStats[node.memberName].calls += 1
+
       # func(var1, var2, ...)
       when NodeType.FunctionApplication
         if node.arguments?
@@ -146,7 +150,7 @@ analyzeCode = (code, path, skipParseError) ->
             assignCall member
 
       # var : variable
-      when NodeType.Identifier
+      when NodeType.Identifier, NodeType.DoOp, NodeType.Switch
         if node.expression?
           assignCall node.expression
 
@@ -154,7 +158,7 @@ analyzeCode = (code, path, skipParseError) ->
       # var1 or var2
       # if variable1 isnt variable2
       # if var1 and var2, var1 + var2
-      when NodeType.LogicalOrOp, NodeType.InOp, NodeType.PlusOp, NodeType.ExistsOp, NodeType.NEQOp, NodeType.LogicalAndOp, NodeType.EQOp, NodeType.InstanceofOp, NodeType.LTOp, NodeType.DivideOp, NodeType.SubtractOp
+      when NodeType.LogicalOrOp, NodeType.LeftShiftOp, NodeType.ExtendsOp, NodeType.GTOp, NodeType.InOp, NodeType.PlusOp, NodeType.ExistsOp, NodeType.NEQOp, NodeType.LogicalAndOp, NodeType.EQOp, NodeType.InstanceofOp, NodeType.LTOp, NodeType.DivideOp, NodeType.SubtractOp
         if node.left?
           assignCall node.left
         if node.right?
@@ -184,9 +188,27 @@ analyzeCode = (code, path, skipParseError) ->
           for member in node.members
             assignCall member
 
-      when NodeType.ProtoMemberAccessOp
+      when NodeType.ProtoMemberAccessOp, NodeType.SoakedMemberAccessOp, NodeType.PreDecrementOp
         if node.expression?
           assignCall node.expression
+
+      when NodeType.SwitchCase
+        if node.conditions?
+          for condition in node.conditions
+            assignCall condition
+
+      when NodeType.BoundFunction
+        if node.parameters?
+          for parameter in node.parameters
+            assignCall parameter
+
+      when NodeType.Class
+        if node.parent?
+          assignCall node.parent
+
+      when NodeType.SoakedDynamicMemberAccessOp
+        if node.indexingExpr?
+          assignCall node.indexingExpr
 
   variablesAndPath =
     stats : variablesStats
