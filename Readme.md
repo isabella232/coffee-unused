@@ -1,10 +1,10 @@
 # coffee-unused
 
-The module helps you to identify unused varibales in your coffescript project.
-The module find all unused variables under given directory and returns array of objects
-specifying name, path and line number
+This module helps you identify unused variables in your coffescript project.
+It finds all unused variables under a given directory and returns an array of objects
+specifying the name of the variable, its path and line number.
 
-```
+```js
   [[
     {
       name: 'fs'
@@ -19,18 +19,15 @@ specifying name, path and line number
   ]]
 ```
 
+## Install
+
+```sh
+npm install coffee-unused
+```
 
 ## Usage
 
-```
-node ./node_modules/index.js --src <path to walk>  [--skip-parse-error]
-
--s alias for '--skip-parse-error'
-
+```sh
+node ./node_modules/coffee-unused/index.js --src <path to walk>  [-s|--skip-parse-error]
 ```
 
-## Install
-
-```
-npm install coffee-unused
-```
