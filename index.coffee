@@ -29,7 +29,7 @@ module.exports = (folder, skipParseError, callback) ->
   walker.on "file", (root, fileStats, next) ->
     return next() if root in ignoredDirectories
 
-    if fileStats.name.endsWith '.coffee'
+    if /\.coffee$/.test fileStats.name
       fileName = "#{root}/#{fileStats.name}"
       q.push fileName
 
